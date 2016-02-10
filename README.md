@@ -22,7 +22,7 @@ This is a charting library built around **d3**, it is a work in progress, so ple
 - area charts
 - support more than one trend line
 
-Examples are avaible in `/examples/`.
+Examples are avaible in [/examples/](/examples).
 
 ## Structure
 To start a new plot, you must first construct a container in your `html`.
@@ -58,7 +58,7 @@ The data should be structured as such:
 The names of the variables can be different and are set in options (by default they go by x0,y0).
 
 In the future I intend to add more documentation, but for now, I will just leave here all the options and their defaults.
-You can also see how the plot functions in the `/examples` folder.
+You can also see how the plot functions in the  [/examples/](/examples) folder.
 ```{js}
     OPTIONS = {// General options
 		colors 			: ["#000000"], //Color of graphics
@@ -98,8 +98,10 @@ To remove the line do this:
     vchart.removeTrend();
 ```
 
-## Scatterplot
+## [Scatterplot](/examples/scatter-charts.html)
 To make a simple scatter plot in one run, we do this:
+
+![alt text][pic/scatter.png]
 
 ```{js}
     var data = [{x0:1, y0:3}, {x0:60, y0:6}, {x0:85, y0:2}];

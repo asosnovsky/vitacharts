@@ -1,5 +1,5 @@
 {
-  "name": "VitaCharts",
+  "name": "vitacharts",
   "description": "a d3 extensions for making simpler plots",
   "main": ["index.js","index.css"],
   "moduleType": [],
@@ -13,7 +13,7 @@
     "Ariel sosnovsky"
   ],
   "license": "MIT",
-  "homepage": "",
+  "homepage": "https://github.com/asosnovsky/vitacharts",
   "ignore": [
     "**/.*",
     "node_modules",
