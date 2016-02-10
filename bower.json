@@ -1,0 +1,27 @@
+{
+  "name": "VitaCharts",
+  "description": "a d3 extensions for making simpler plots",
+  "main": "index.js",
+  "moduleType": [],
+  "keywords": [
+    "d3",
+    "chart",
+    "simple"
+  ],
+  "authors": [
+    "ariel sosnovsky"
+  ],
+  "license": "MIT",
+  "homepage": "",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "d3": "^3.5.14",
+    "d3-tip": "^0.6.7"
+  }
+}
