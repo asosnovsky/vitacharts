@@ -53,7 +53,7 @@ Next we pass some data, as well as any relevant information
 ```
 The data should be structured as such:
 ```{json}
-    [{x0:1, y0:3}, {x0:60, y0:6}, {x0:85, y0:2}]
+    [{"x0":1, "y0":3}, {"x0":60, "y0":6}, {"x0":85, "y0":2}]
 ```
 The names of the variables can be different and are set in options (by default they go by x0,y0).
 
@@ -101,8 +101,6 @@ To remove the line do this:
 ## [Scatterplot](/examples/scatter-charts.html)
 To make a simple scatter plot in one run, we do this:
 
-![alt text][pic/scatter.png]
-
 ```{js}
     var data = [{x0:1, y0:3}, {x0:60, y0:6}, {x0:85, y0:2}];
         vchart.buildAxis().buildPlot('dot').data(data);
@@ -112,7 +110,7 @@ To update this plot at any time, do this:
 ```{js}
     vchart.data(newdata);
 ```
-## Bar-Chart
+## [Bar-Chart](/examples/bar-charts.html)
 There are two bar-charts avaible, horizantal and vertical. Each will depend on which values you choose to show as strings.
 If x-values are strings, then you get a horizantal chart, otherwise a vertical.
 
@@ -130,7 +128,7 @@ And you may make a plot as such:
     vchart.buildAxis().buildPlot('bar').data(data);
 ```
 
-## Pie-chart
+## [Pie-chart](/examples/pie-charts.html)
 Data for pie chart is as follows:
 ```{js}
     data = [{x:5, y:"Sugar"}, {x:2, y:"Milk"}, {x:2, y:"Honey"}];
