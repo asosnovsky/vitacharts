@@ -1,15 +1,16 @@
 {
   "name": "VitaCharts",
   "description": "a d3 extensions for making simpler plots",
-  "main": "index.js",
+  "main": ["index.js","index.css"],
   "moduleType": [],
   "keywords": [
     "d3",
     "chart",
-    "simple"
+    "simple",
+    "plots"
   ],
   "authors": [
-    "ariel sosnovsky"
+    "Ariel sosnovsky"
   ],
   "license": "MIT",
   "homepage": "",

@@ -7,8 +7,8 @@
 function vChart(chartid, opt) {
 	/*Set Defaults*/
 	var options = {// general options
-		colors 			: ["#000000"], //Color of graphics
-		oncolors 		: ["#000000"], // Color after on-hover
+		colors 			: ["#5127EB","#E23131"], //Color of graphics
+		oncolors 		: ["#7D5FEB","#E25E5E"], // Color after on-hover
 		xformat 		: function(a) {return a}, // format of xaxis
 		yformat 		: function(a) {return a}, // format of yaxis
 		xlab 			: "x", // label of xaxis
@@ -16,7 +16,7 @@ function vChart(chartid, opt) {
 		tiplabel		: ["x","y"], // labels for tooltip
 		xnames 			: ["x0","x1"],  // names of x variables
 		ynames 			: ["y0","y1"],  // names of y variables
-		animation_time 	: 500, // animation time
+		animation_time 	: 300, // animation time
 		color_cat 		: false
 	},
 	axisOptions = {// Axis options
@@ -27,25 +27,41 @@ function vChart(chartid, opt) {
 		noxtick 	: false, noytick : false,
 		hideX 		: false, hideY 	 : false
 	} 
-	margins 	= {top: 50, right: 50, bottom: 50, left: 50};
+	margins 	= {top: 70, right: 50, bottom: 50, left: 50};
 	
 	/*Globals*/
 	var svg, svg_g, x, y, data;
-
-	/*"Constructor"*/
-		setup();
 
 	/*Internal Methods*/
 	/**
 	 * @return {Object} {height,width,radius}
 	 */
+	var owh  = window.innerHeight, oww = window.innerWidth,
+		htwr = (window.innerHeight/window.innerWidth),
+		opwh  = [600, 600];
 	function getSize() {
-		return {
-			width  : 0.99*parseInt(svg.style("width")) - margins.left - margins.right,
-			height : 0.9*parseInt(svg.style("height")) - margins.top - margins.bottom
-		}
+		htwr = (window.innerHeight/window.innerWidth);
+		if(Math.abs(owh - window.innerHeight) > Math.abs(oww-window.innerWidth)) {			
+			opwh = [ opwh[0], opwh[0]*htwr ];
+			var ret = {
+				hbox   : opwh,
+				width  : 0.95*opwh[0] - margins.left - margins.right,
+				height : 0.9*opwh[1] - margins.top - margins.bottom
+			}
+		}	else	{
+			opwh = [ opwh[1]/htwr, opwh[1] ];
+			var ret = {
+				hbox   : opwh,
+				width  : 0.95*opwh[0] - margins.left - margins.right,
+				height : 0.9*opwh[1] - margins.top - margins.bottom
+			}
+		};
+		owh  = window.innerHeight, oww = window.innerWidth;
+		return ret;
 	}
 
+	/*"Constructor"*/
+		setup();
 	/**
 	 * Main setup (runs when class is built): 
 	 * -> builds svg
@@ -55,15 +71,18 @@ function vChart(chartid, opt) {
 	 */
 	function setup() {
 		d3.select(chartid).html("");
-		svg = d3.select(chartid).append("svg")
-				.attr("width", "100%")
-				.attr("height", "100%");
+		svg = d3.select(chartid)
+					.append("svg")
+					.attr("preserveAspectRatio", "xMinYMax meet")
+				   	.attr("viewBox", "0 0 " + getSize().hbox)
+
 		svg_g = svg.append("g")
-				.attr("class","gstate");
+				.attr("class","vchart-gstate");
 		d3.select(window).on('resize',function(){
-			svg.transition().duration(options.animation_time)
-				.attr("width", "100%")
-				.attr("height", "100%");
+			svg.attr("viewBox", "0 0 " + getSize().hbox)
+			// svg_g.transition().duration(options.animation_time)
+			// 	.style("width", "100%")
+			// 	.style("height", "100%");
 			plotevents.trigger('update');
 		})
 	}
@@ -148,21 +167,21 @@ function vChart(chartid, opt) {
 			if(xsvg) xsvg.remove();
 			x 		= d3.scale[xscale]();
 			xsvg 	= svg.append("g")
-						.attr("class", "x axis")
+						.attr("class", "x vchart-axis")
 						.attr("transform", "translate(" + (margins.left) + "," + ((axisOptions.xto0?y(0):(getSize().height))+margins.top-margins.bottom) + ")");
 						
 			if(ysvg) ysvg.remove();
 			y 		= d3.scale[yscale]();
 			ysvg 	= svg.append("g")
-						.attr("class", "y axis")
+						.attr("class", "y vchart-axis")
 						.attr("transform", "translate(" + (axisOptions.yto0?(x(0)+margins.left):(margins.left)) + ","+(margins.top-margins.bottom)+")");
 
 			xlabsvg = xsvg.append("text")
-				.attr("class", "chart-label")
+				.attr("class", "vchart-label")
 				.attr("font-size", "1.2em"), 
 
 			ylabsvg = ysvg.append("text")
-				.attr("class", "chart-label")
+				.attr("class", "vchart-label")
 				.attr("font-size", "1.2em");
 		}
 		/**
@@ -202,7 +221,6 @@ function vChart(chartid, opt) {
 				.attr("dy", ".71em")
 				.style("text-anchor", "end")
 				.text(options.ylab);
-			window.ylabsvg = ylabsvg;
 		}
 
 		/**
@@ -241,14 +259,14 @@ function vChart(chartid, opt) {
 			if(beId && ueId) {
 				plotevents.remove('data',beId);
 				plotevents.remove('update',ueId);
-				d3.selectAll('.gstate').remove();
+				d3.selectAll('.vchart-gstate').remove();
 				svg_g = svg.append("g")
-					.attr("class","gstate");
+					.attr("class","vchart-gstate");
 			}
 			/*locals*/
 
 			var substate, bardata, piedata,
-				color, oncolors, text, path,
+				color, oncolors, text, path, xmin = 0,
 				tip = d3.tip()//tooltip
 					.attr('class', 'd3-tip')
 					.offset([-10, 0])
@@ -274,6 +292,7 @@ function vChart(chartid, opt) {
 					.forEach(function(a){
 						a.x0 = x0; 
 						x0 += a.x1;
+						xmin = Math.min(x0,xmin);
 						bardata.push(a);
 					})
 				});
@@ -310,9 +329,9 @@ function vChart(chartid, opt) {
 				switch(type){
 					case "pie": //pie chart
 						axisOptions.hideY = axisOptions.hideX = true;
-						state 		= svg_g.selectAll(".state").data(pieprep(dt)).enter();
+						state 		= svg_g.selectAll(".vchart-state").data(pieprep(dt)).enter();
 						substate 	= state.append("g")
-										.attr("class", "state");
+										.attr("class", "vchart-state");
 						path = substate.append("path")
 								.on('mouseover', function(d){
 									d3.select(this).style('fill', function(d) { return oncolors(d.data[options.xnames[0]]); });
@@ -327,9 +346,9 @@ function vChart(chartid, opt) {
 						break;
 					case "dot": // scatterplot
 						axisOptions.hideY = axisOptions.hideX = false;
-						state 		= svg_g.selectAll(".state").data(dt).enter();
+						state 		= svg_g.selectAll(".vchart-state").data(dt).enter();
 						substate 	= state.append("circle")
-							.attr("class", "state");
+							.attr("class", "vchart-state");
 						substate.data(data)
 							.attr("r", 0)
 							.style("fill","#000000")
@@ -346,11 +365,12 @@ function vChart(chartid, opt) {
 					case "bar": // barplot
 						axisOptions.hideY = axisOptions.hideX = false;
 						bardataprep(dt);
-						state 		= svg_g.selectAll(".state").data(bardata).enter();
+						state 		= svg_g.selectAll(".vchart-state").data(bardata).enter();
 						substate 	= state.append("rect")
-							.attr("class", "state")
+							.attr("class", "vchart-state")
 							.attr("width",0)
-							.attr("height",0)
+							// .attr("height",0)
+							.attr("y",x(0))
 							.on('mouseover', function(d){
 								d3.select(this).style('fill', function(d) { return oncolors(d.cat); });
 								tip.show(d)
@@ -394,9 +414,10 @@ function vChart(chartid, opt) {
 										}).join(': ');
 							});
 							if( axisOptions.yscale )	{
+								y.domain([xmin, y.domain()[1]]);
 								color.domain(options.ynames);
 								oncolors.domain(color.domain());
-								substate.data(bardata).transition().duration(options.animation_time)
+								substate.data(bardata).transition().duration(1.5*options.animation_time)
 									.attr("transform", "translate("+margins.left+"," + (margins.top-margins.bottom) + ")")
 									.attr("x", function(d) { return x(d.title); })
 									.attr("width", x.rangeBand())
@@ -405,9 +426,10 @@ function vChart(chartid, opt) {
 								.style("fill", function(d) { return color(d.cat);});
 
 							}	else if( axisOptions.xscale )	{
+								x.domain([xmin, x.domain()[1]]);
 								color.domain(options.xnames);
 								oncolors.domain(color.domain());
-								substate.data(bardata).transition().duration(options.animation_time)
+								substate.data(bardata).transition().duration(1.5*options.animation_time)
 									.attr("transform", "translate(0," + (margins.top-margins.bottom) + ")")
 									.attr("y", function(d) { return y(d.title); })
 									.attr("height", y.rangeBand())
@@ -431,9 +453,9 @@ function vChart(chartid, opt) {
 								color.domain(options.color_cat?options.color_cat:options.ynames);
 								oncolors.domain(color.domain());
 							//radius
-								var radius = Math.min(getSize().height,getSize().width)/2; 
+								var radius = 0.9*Math.min.apply(false,getSize().hbox)/2; 
 								svg_g.transition().duration(options.animation_time)
-									.attr("transform", "translate(" + (getSize().width/2+margins.left) + "," + (getSize().height/2+margins.top) + ")");
+									.attr("transform", "translate(" + (getSize().width/2 + margins.left - margins.right) + "," + (getSize().height/2+margins.top-margins.bottom) + ")");
 							//arc
 								var arc 	= d3.svg.arc().outerRadius(radius);
 									path.transition().duration(options.animation_time).attr("fill", function(d) { oncolors(d.data[options.xnames[0]]);return color(d.data[options.xnames[0]]); } )
@@ -467,7 +489,7 @@ function vChart(chartid, opt) {
 		var tlinedt = {};
 		computeTrend();
 		trendline = svg.append("line")
-					.attr("class","trendline")
+					.attr("class","vchart-trendline")
 					.attr("stroke-width",5)
 					.attr('x1',x(tlinedt.xy0[0]) + margins.left).attr('y1',y(tlinedt.xy0[1]) - margins.bottom + margins.top)
 					.attr('x2',x(tlinedt.xy0[0]) + margins.left).attr('y2',y(tlinedt.xy0[1]) - margins.bottom + margins.top)

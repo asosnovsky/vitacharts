@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<head>
+	<title>Bar Charts Example</title>
+	<!-- D3 -->
+	<script type="text/javascript" src="/bower_components/d3/d3.js"></script>
+	<script type="text/javascript" src="bower_components/d3-tip/index.js"></script>
+	<script type="text/javascript" src="bower_components/VitaCharts/index.js"></script>
+	<script type="text/javascript" src="bower_components/VitaCharts/index.js"></script>
+	<link rel="stylesheet" type="text/css" href="bower_components/VitaCharts/index.css">
+</head>
+<body>
+	<div id="chart"></div>
+	<script type="text/javascript">
+		/*create class*/
+		var vchart = new vChart("#chart");
+		/*Generate some data*/
+		var data 	= String(Math.random()).substr(2,15).split('').map(function(d){ return {"x":Math.random(),"y":d }});
+
+		/*Plot!*/
+		vchart.buildAxis().buildPlot('dot').data(data,{
+			xnames:["x"],
+			ynames:["y"]
+		}).addTrend();
+
+		/*Run at random instances*/
+		setInterval(function(){
+			/*Generate data again*/
+			data 	= String(Math.random()).substr(2,15).split('').map(function(d){ return {"x":Math.random(),"y":d }});
+			/*update data*/
+			vchart.data(data, {}, {
+				noxtick: Math.random() < 0.5,//show x-ticks only 50% of the time
+				noytick: Math.random() < 0.5//show y-ticks only 50% of the time
+			});
+		},2000)
+		
+	</script>
+</body>
+</html>

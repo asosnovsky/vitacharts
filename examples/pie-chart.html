@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<head>
+	<title>Bar Charts Example</title>
+	<!-- D3 -->
+	<script type="text/javascript" src="/bower_components/d3/d3.js"></script>
+	<script type="text/javascript" src="bower_components/d3-tip/index.js"></script>
+	<script type="text/javascript" src="bower_components/VitaCharts/index.js"></script>
+	<script type="text/javascript" src="bower_components/VitaCharts/index.js"></script>
+	<link rel="stylesheet" type="text/css" href="bower_components/VitaCharts/index.css">
+</head>
+<body>
+	<div id="chart"></div>
+	<script type="text/javascript">
+		/*create class*/
+		var vchart = new vChart("#chart");
+		/*Generate some data*/
+		var data 	= ["Sugar","Milk","Honey"].map(function(d){ return {"x":Math.round(10*Math.random()+1),"y":d }});
+		/*Plot!*/
+		vchart.buildAxis().buildPlot('pie').data(data,{
+			xnames:["x"],
+			ynames:["y"],
+			margins 	: {top:50, bottom:10, left:50, right:10},
+			colors: ["#2A00FF","#5EE444","#1FD4CE"],
+			oncolors: ["#7A62F5","#A6E699","#B1F0EE"]
+		});
+
+		/*Run at random instances*/
+		setInterval(function(){
+			/*Generate data again*/
+			data 	= ["Sugar","Milk","Honey"].map(function(d){ return {"x":Math.round(10*Math.random()+1),"y":d }});
+			/*Plot*/
+			vchart.data(data);
+		},2000)
+		
+	</script>
+</body>
+</html>

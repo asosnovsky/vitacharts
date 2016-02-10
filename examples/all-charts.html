@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<head>
+	<title>Bar Charts Example</title>
+	<!-- D3 -->
+	<script type="text/javascript" src="/bower_components/d3/d3.js"></script>
+	<script type="text/javascript" src="bower_components/d3-tip/index.js"></script>
+	<script type="text/javascript" src="bower_components/VitaCharts/index.js"></script>
+	<script type="text/javascript" src="bower_components/VitaCharts/index.js"></script>
+	<link rel="stylesheet" type="text/css" href="bower_components/VitaCharts/index.css">
+</head>
+<body>
+	<div id="chart"></div>
+	<script type="text/javascript">
+		/*create class*/
+		var vchart = new vChart("#chart");
+		vchart.buildAxis();
+
+		/*Run at random instances*/
+		setInterval(function(){
+			p = Math.random();
+			if(p < 3/5) {
+				q = Math.random()
+				// generate random
+				/*Generate data again*/
+				data 	= Math.random().toString(36).substr(2,20).split('').map(function(d){ return {"x":Math.random(),"y":d }});
+				/*Plot*/
+				vchart.buildPlot('bar').data(data, {
+					xnames:[((q<0.5)?"x":"y")],//50% of time show x on y-axis and vice versa
+					ynames:[((q>=0.5)?"x":"y")]
+				});
+			} else if(p > 3/5) {
+				/*Generate data again*/
+				data 	= String(Math.random()).substr(2,15).split('').map(function(d){ return {"x":Math.random(),"y":d }});
+				/*update data*/
+				vchart.buildPlot('dot').data(data, {
+					xnames:["x"],ynames:["y"]
+				}, {
+					noxtick: Math.random() < 0.5,//show x-ticks only 50% of the time
+					noytick: Math.random() < 0.5//show y-ticks only 50% of the time
+				});
+			}	else	{
+				/*Generate data again*/
+				data 	= ["Sugar","Milk"].map(function(d){ return {"x":Math.round(10*Math.random()+1),"y":d }});
+				/*Plot*/
+				vchart.buildPlot('pie').data(data,{
+					xnames:["x"],ynames:["y"],
+					margins 	: {top:50, bottom:10, left:50, right:10}
+				});
+			}
+		},2000)
+		
+	</script>
+</body>
+</html>

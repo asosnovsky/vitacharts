@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<head>
+	<title>Bar Charts Example</title>
+	<!-- D3 -->
+	<script type="text/javascript" src="/bower_components/d3/d3.js"></script>
+	<script type="text/javascript" src="bower_components/d3-tip/index.js"></script>
+	<script type="text/javascript" src="bower_components/VitaCharts/index.js"></script>
+	<script type="text/javascript" src="bower_components/VitaCharts/index.js"></script>
+	<link rel="stylesheet" type="text/css" href="bower_components/VitaCharts/index.css">
+</head>
+<body>
+	<div id="chart"></div>
+	<script type="text/javascript">
+		/*create class*/
+		var vchart = new vChart("#chart");
+		/*Generate some data*/
+		var data 	= Math.random().toString(36).substr(2,20).split('').map(function(d){ return {"x":Math.random(),"y":d }});
+		/*Plot!*/
+		vchart.buildAxis().buildPlot('bar').data(data,{
+			xnames:["x"],
+			ynames:["y"]
+		});
+
+		/*Run at random instances*/
+		setInterval(function(){
+			p = Math.random();// generate random
+			/*Generate data again*/
+			data 	= Math.random().toString(36).substr(2,20).split('').map(function(d){ return {"x":Math.random(),"y":d }});
+			/*Plot*/
+			vchart.data(data, {
+				xnames:[((p<0.5)?"x":"y")],//50% of time show x on y-axis and vice versa
+				ynames:[((p>=0.5)?"x":"y")]
+			});
+		},2000)
+		
+	</script>
+</body>
+</html>
