@@ -25,7 +25,8 @@ function vChart(chartid, opt) {
 		xlim_max	: false, xlim_min: false,
 		ylim_max	: false, ylim_min: false,
 		noxtick 	: false, noytick : false,
-		hideX 		: false, hideY 	 : false
+		hideX 		: false, hideY 	 : false,
+		orderset 	: false
 	} 
 	margins 	= {top: 70, right: 50, bottom: 50, left: 50};
 	
@@ -34,11 +35,15 @@ function vChart(chartid, opt) {
 
 	/*Internal Methods*/
 	/**
-	 * @return {Object} {height,width,radius}
+	 * Size helpers
 	 */
 	var owh  = window.innerHeight, oww = window.innerWidth,
 		htwr = (window.innerHeight/window.innerWidth),
 		opwh  = [600, 600];
+	/**
+	 * Get the size of the window
+	 * @return {Object} {height,width,radius}
+	 */
 	function getSize() {
 		htwr = (window.innerHeight/window.innerWidth);
 		if(Math.abs(owh - window.innerHeight) > Math.abs(oww-window.innerWidth)) {			
@@ -80,13 +85,10 @@ function vChart(chartid, opt) {
 				.attr("class","vchart-gstate");
 		d3.select(window).on('resize',function(){
 			svg.attr("viewBox", "0 0 " + getSize().hbox)
-			// svg_g.transition().duration(options.animation_time)
-			// 	.style("width", "100%")
-			// 	.style("height", "100%");
 			plotevents.trigger('update');
 		})
 	}
-
+	/**Event Handler**/
 	var plotevents 	= new (function(){
 		var e = {data:{},update:{}};
 		this.register = function(type, func) {
@@ -100,21 +102,51 @@ function vChart(chartid, opt) {
 		this.trigger = function(type,data) {
 			Object.keys(e[type]).forEach(function(key){e[type][key](data)});
 		}
+		this.subtrigger = function(type, id, data) {
+			e[type][id](data);
+		}
 	})()
+	/**
+	 * Generates a domain relative to scale-type
+	 * @param  {Array} 	dt    data
+	 * @param  {String} type  scale-type
+	 * @param  {Scale} 	scale d3.sclae
+	 * @param  {String} vname variable name
+	 */
+	function domainmkr(dt, type, scale, vname, lmin, lmax) {
+		switch(type) {
+			case 'linear'	: scale.domain([(lmin!==false)?lmin:(d3.min(dt, function(d) { return d[vname];})), (lmax!==false)?lmax:(d3.max(dt, function(d) { return d[vname];}))]);break;
+			case 'ordinal'	: scale.domain( (axisOptions.categories) || (dt.map(function(d) { return d[vname]; })) ); break;
+			default 		: console.error('Invalid domain type')
+		}
+	}
+
+	/**
+	 * updates the range bdrys
+	 * @param  {Scale} scale 
+	 * @param  {String} type  linear|ordinal
+	 * @param  {Array} bdry  [min,max]
+	 * @return {Scale}       
+	 */
+	function updaterange(scale, type, bdry) 		{
+		switch(type) {
+			case 'linear'	: return scale.range(bdry); break;
+			case 'ordinal'	: return scale.rangeRoundBands(bdry, .1); break;
+			default 		: console.error('Invalid domain type')
+		}
+	}
+
 	/*External Methods*/
 	/**
 	 * Builds the x/y axes
 	 * @param  {Object} opt [description]
 	 * @return {this}     
-	 */
+	 */ var xsvg,ysvg,xscale,yscale;
 	this.buildAxis 	= function(opt) {
 		Object.keys(opt || {}).forEach(function(key) {if(Object.keys(axisOptions).indexOf(key) > -1) {axisOptions[key] = opt[key];}});
-		
-		// locals
-		var xsvg,ysvg,
-			xscale = 'linear',
-			yscale = 'linear';
-
+		/*Set default*/
+		xscale = 'linear';
+		yscale = 'linear';
 		/*Helper Functions*/
 		/**
 		 * Generates a scale-name relative to contructor-type
@@ -126,36 +158,6 @@ function vChart(chartid, opt) {
 				case Number: return 'linear'; break;
 				case String: return 'ordinal'; break;
 				default: console.error('Wrong variable type, can only process strings and numbers.');
-			}
-		}
-
-		/**
-		 * Generates a domain relative to scale-type
-		 * @param  {Array} 	dt    data
-		 * @param  {String} type  scale-type
-		 * @param  {Scale} 	scale d3.sclae
-		 * @param  {String} vname variable name
-		 */
-		function domainmkr(dt, type, scale, vname, lmin, lmax) {
-			switch(type) {
-				case 'linear'	: scale.domain([(lmin!==false)?lmin:(d3.min(dt, function(d) { return d[vname];})), (lmax!==false)?lmax:(d3.max(dt, function(d) { return d[vname];}))]);break;
-				case 'ordinal'	: scale.domain( (axisOptions.categories) || (dt.map(function(d) { return d[vname]; })) ); break;
-				default 		: console.error('Invalid domain type')
-			}
-		}
-
-		/**
-		 * updates the range bdrys
-		 * @param  {Scale} scale 
-		 * @param  {String} type  linear|ordinal
-		 * @param  {Array} bdry  [min,max]
-		 * @return {Scale}       
-		 */
-		function updaterange(scale, type, bdry) 		{
-			switch(type) {
-				case 'linear'	: return scale.range(bdry); break;
-				case 'ordinal'	: return scale.rangeRoundBands(bdry, .1); break;
-				default 		: console.error('Invalid domain type')
 			}
 		}
 		/*Builders*/
@@ -254,7 +256,7 @@ function vChart(chartid, opt) {
 	 * @param  {String} type dot|bar
 	 * @return {this}      
 	 */
-	var beId, ueId;// memos
+	var beId, ueId, ptype = 'none';// memos
 	this.buildPlot = function(type) 	{
 			if(beId && ueId) {
 				plotevents.remove('data',beId);
@@ -263,8 +265,8 @@ function vChart(chartid, opt) {
 				svg_g = svg.append("g")
 					.attr("class","vchart-gstate");
 			}
+			ptype = type;
 			/*locals*/
-
 			var substate, bardata, piedata,
 				color, oncolors, text, path, xmin = 0,
 				tip = d3.tip()//tooltip
@@ -281,12 +283,15 @@ function vChart(chartid, opt) {
 			 * @param  {Array} 	dt data
 			 * @return {Array}     sorted-data
 			 */
+			var bar_titleorder;
 			function bardataprep(dt) 	{
-				bardata = [];
+				bardata = [],bar_titleorder = {};
 				dt.forEach(function(d) {
-					var x0 = 0;
+					var x0 = 0,title = d[options[(axisOptions.yscale)?('xnames'):('ynames')][0]];
+					score = 0;
 					options[(axisOptions.yscale)?('ynames'):('xnames')].map(function(xn){
-						return {title: d[options[(axisOptions.yscale)?('xnames'):('ynames')][0]], 
+						score += Math.pow(d[xn],2);						
+						return {title: title, 
 							cat: xn, x1:d[xn]} 
 					}).sort(function(a,b){return a.x1-b.x1})
 					.forEach(function(a){
@@ -294,7 +299,8 @@ function vChart(chartid, opt) {
 						x0 += a.x1;
 						xmin = Math.min(x0,xmin);
 						bardata.push(a);
-					})
+					});
+					bar_titleorder[title] = Math.sqrt(score);
 				});
 			}
 
@@ -388,6 +394,10 @@ function vChart(chartid, opt) {
 			 */
 			function update() {
 				if(data) {
+					//Reset Domains
+					domainmkr(data, xscale, x, options.xnames[0],axisOptions.xlim_min,axisOptions.xlim_max);
+					domainmkr(data, yscale, y, options.ynames[0],axisOptions.ylim_min,axisOptions.ylim_max);
+				
 					switch(type) {
 						case "dot": //scatterplot
 							tip.html(function(d) {
@@ -414,9 +424,13 @@ function vChart(chartid, opt) {
 										}).join(': ');
 							});
 							if( axisOptions.yscale )	{
+								//Set X/Y domains
+								axisOptions.orderset&&(x.domain(x.domain().sort(function(a,b){return bar_titleorder[a] - bar_titleorder[b]})));
 								y.domain([xmin, y.domain()[1]]);
+								//reset colors
 								color.domain(options.ynames);
 								oncolors.domain(color.domain());
+								//build state
 								substate.data(bardata).transition().duration(1.5*options.animation_time)
 									.attr("transform", "translate("+margins.left+"," + (margins.top-margins.bottom) + ")")
 									.attr("x", function(d) { return x(d.title); })
@@ -426,9 +440,13 @@ function vChart(chartid, opt) {
 								.style("fill", function(d) { return color(d.cat);});
 
 							}	else if( axisOptions.xscale )	{
+								//Set X/Y domains
+								axisOptions.orderset&&(y.domain(y.domain().sort(function(a,b){return bar_titleorder[a] - bar_titleorder[b]})));
 								x.domain([xmin, x.domain()[1]]);
+								//reset colors
 								color.domain(options.xnames);
 								oncolors.domain(color.domain());
+								//build state
 								substate.data(bardata).transition().duration(1.5*options.animation_time)
 									.attr("transform", "translate(0," + (margins.top-margins.bottom) + ")")
 									.attr("y", function(d) { return y(d.title); })
@@ -437,6 +455,7 @@ function vChart(chartid, opt) {
 									.attr("width", function(d) { return Math.abs(x(d.x1)-x(d.x0)); })
 								.style("fill", function(d) { return color(d.cat);});
 							}	else 	{ console.error("Bar chart requires either x or y to be string")}
+								substate.on('mousedown', onevents.svgpress);
 							break;
 						case "pie": //pie chart
 							//set tooltip html
@@ -557,6 +576,10 @@ function vChart(chartid, opt) {
 		});
 		Object.keys(optAxes || {}).forEach(function(key) {if(Object.keys(axisOptions).indexOf(key) > -1) {axisOptions[key] = optAxes[key];}});
 	}
+	
+	/* 	
+		Undocumented methods
+	*/
 	/**
 	 * General update with no new data
 	 * @param  {Object} opt 	{colors,oncolors,xformat,yformat,xlab,ylab,tiplabel,xnames,ynames}
@@ -567,8 +590,27 @@ function vChart(chartid, opt) {
 		data = dt || data;
 		updateOpt(opt||{}, optAxes||{});
 		plotevents.trigger('update');
+		plotevents.trigger('update');
 		return this;
 	}
 
-}
+	this.getOptions = function() {
+		return options;
+	}
 
+	this.getAxisoptions = function() {
+		return axisOptions;
+	}
+
+	this.currentType = function() {
+		return ptype;
+	}
+	var onevents = {svgpress:{}};
+	this.on = function(ename, func) {
+		if(ueId) {
+			onevents[ename] = func;
+			plotevents.subtrigger('update', ueId);
+		} else {console.warn('`on` should be called after plot is made')};
+		return this;
+	}
+}
